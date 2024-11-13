@@ -4,12 +4,11 @@ Welcome to the **The Automation Ahead** code repository, the companion resource 
 
 ## About This Repository
 
-Each installment in **The Automation Ahead** series focuses on a specific tool or technique transforming the field of investment. Here, you’ll find practical Python code examples from each article, designed to demonstrate real-world use cases for GenAI in tasks like data analysis, portfolio management, idea generation, and more.
+Each installment in **The Automation Ahead** series focuses on a specific tool or technique transforming the field of investment. Here, you’ll find practical Python code examples from each article, designed to demonstrate real-world use cases for GenAI in tasks like data analysis, financial analysis, portfolio management, and more.
 
 ## What’s Inside
 
 - **Python Code Examples**: Each folder includes Python scripts corresponding to the articles, offering hands-on applications of GenAI tools in investment contexts.
-- **Tool Insights**: Documentation for each code example highlights key strengths, limitations, and effective techniques for applying the tool.
 - **Practical Use Cases**: Explore applications developed specifically for investment professionals, enabling you to test and assess GenAI’s practicality in real scenarios.
 
 ## How to Use This Repository
