@@ -21,7 +21,7 @@ This repository is designed as a learning tool. We encourage you to:
 ## Collaboration & Community
 
 We invite you to collaborate with us to identify and refine the most valuable use cases for GenAI in investment:
-- **GitHub**: Contribute to the codebase by sharing improvements or examples of additional use cases.
+- **GitHub**: Contribute to the codebase by sharing improvements or examples of additional use cases in this repository.
 - **Discord**: Join our community discussions to connect with peers, ask questions, and explore ideas together. 
 
 By engaging with this repository, you’ll gain practical knowledge to help you assess GenAI’s potential in your workflows, positioning you at the forefront of investment automation.
