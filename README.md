@@ -28,6 +28,6 @@ By engaging with this repository, you’ll gain practical knowledge to help you 
 
 ## License
 
-This repository is licensed under the Apache 2.0 License. For more details, see the [LICENSE](LICENSE) file.
+This repository is licensed under the MIT License. For more details, see the [LICENSE](LICENSE) file.
 
 ---
