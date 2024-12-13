@@ -19,7 +19,7 @@ This repository contains tutorials on how to run small and large language models
 
 ---
 
-**Recommendation**: Follow the notebook tutorials to learn step-by-step workflows, and refer back to this repo for additional information.
+**Recommendation**: Follow the notebook tutorials to learn step-by-step workflows, and refer back to this README for additional information.
 
 # Run an LLM with llama.cpp locally. 
 
