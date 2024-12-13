@@ -1,3 +1,14 @@
+# How to use this repo
+This repo contains tutorials on how to run small and large language models in Huggingface for various financial related tasks. The repo contains the following:
+
+>>Run_LLM_on_local_machine: This is a Jupyter Notebook tutorial guide through ways in which you can run language models locally using HuggingFace if you have a GPU and using lamma.cpp if you do not have a GPU. We suggest downloading this notebook or cloning this repo if you wish to run this locally. 
+
+>>Run_LLM_on_the_cloud: This is the same guide but set up for running LLMs in Google Colab or Kaggle where you have free access to limited GPU resources. We suggest running this throug a shared version on google colab here: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cbOGsTa96las7bT0bG4cCKWPNzIRdQtb?usp=sharing)
+
+>>FinLLM Comparison Table: This is a table comparing financial language models against general purpose language models. Please refer to the Article - [Practical Guide For LLMs in the Finance Industry for more information](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/practical-guide-for-llms).
+
+We suggest you follow the the notebook tutorial and refer back to here for any further information.
+
 # Run an LLM with llama.cpp locally. 
 
 llama.cpp is a an open-source project that allows running LLMs efficiently with the use of only a CPU on a local laptop, without the need for a powerful GPU.  
