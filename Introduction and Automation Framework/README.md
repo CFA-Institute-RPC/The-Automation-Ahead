@@ -1,4 +1,4 @@
-# The Automation Ahead Framework
+# The Automation Framework
 
 This repository helps financial professionals evaluate and implement automation tools in investment processes. Designed to foster experimentation, it serves as a practical guide for quickly assessing automation opportunities and integrating them into day-to-day workflows. For more details, refer to the [Introduction and Automation Framework](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/introduction) on the CFA Institute Research and Policy Center website.
 
