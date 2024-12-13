@@ -1,13 +1,25 @@
-# How to use this repo
-This repo contains tutorials on how to run small and large language models in Huggingface for various financial related tasks. The repo contains the following:
+# How to Use This Repo
 
->>Run_LLM_on_local_machine: This is a Jupyter Notebook tutorial guide through ways in which you can run language models locally using HuggingFace if you have a GPU and using lamma.cpp if you do not have a GPU. We suggest downloading this notebook or cloning this repo if you wish to run this locally. 
+This repository contains tutorials on how to run small and large language models using HuggingFace for various financial tasks. The following resources are included:
 
->>Run_LLM_on_the_cloud: This is the same guide but set up for running LLMs in Google Colab or Kaggle where you have free access to limited GPU resources. We suggest running this throug a shared version on google colab here: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cbOGsTa96las7bT0bG4cCKWPNzIRdQtb?usp=sharing)
+### **1. Run LLMs on a Local Machine**
+- A Jupyter Notebook tutorial that guides you through running language models locally:
+  - **Using HuggingFace** if you have a GPU.
+  - **Using Llama.cpp** if you don’t have a GPU.
+- **Recommendation**: Download this notebook or clone the repo if you wish to run it locally.
 
->>FinLLM Comparison Table: This is a table comparing financial language models against general purpose language models. Please refer to the Article - [Practical Guide For LLMs in the Finance Industry for more information](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/practical-guide-for-llms).
+### **2. Run LLMs on the Cloud**
+- The same tutorial as above, but configured for Google Colab or Kaggle, where you have free access to limited GPU resources.
+- **Recommendation**: Run the shared Google Colab version directly:
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cbOGsTa96las7bT0bG4cCKWPNzIRdQtb?usp=sharing)
 
-We suggest you follow the the notebook tutorial and refer back to here for any further information.
+### **3. FinLLM Comparison Table**
+- A table comparing financial language models to general-purpose language models.
+- **Reference**: See the article [Practical Guide for LLMs in the Finance Industry](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/practical-guide-for-llms) for detailed insights.
+
+---
+
+**Recommendation**: Follow the notebook tutorials to learn step-by-step workflows, and refer back to this repo for additional information.
 
 # Run an LLM with llama.cpp locally. 
 
