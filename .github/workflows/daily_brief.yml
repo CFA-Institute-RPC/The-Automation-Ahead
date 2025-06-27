@@ -1,16 +1,21 @@
 name: Daily Brief
+
 on:
+  # Every day at 07:00 UTC
   schedule:
     - cron: '0 7 * * *'
+  # Manual trigger button in the Actions tab
   workflow_dispatch:
 
 jobs:
   run-brief:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
@@ -18,13 +23,12 @@ jobs:
         run: |
           pip install -r "Retrieval Augmented Generation/Portfolio News Updater/automation_scripts/requirements.txt"
 
-      - name: Run the news brief
-        run: |
-          python "Retrieval Augmented Generation/Portfolio News Updater/automation_scripts/daily_news_brief.py"
+      - name: Run the news-brief script
         env:
-          YAHOO_EMAIL:        ${{ secrets.YAHOO_EMAIL }}
-          YAHOO_APP_PASSWORD: ${{ secrets.YAHOO_APP_PASSWORD }}
+          GMAIL_EMAIL:        ${{ secrets.GMAIL_EMAIL }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           TO_EMAIL:           ${{ secrets.TO_EMAIL }}
           OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          PORTFOLIO:          ${{ vars.PORTFOLIO }}
-          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          PORTFOLIO:          ${{ secrets.PORTFOLIO }}
+        run: |
+          python "Retrieval Augmented Generation/Portfolio News Updater/automation_scripts/daily_news_brief.py"

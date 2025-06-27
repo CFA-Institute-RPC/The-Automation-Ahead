@@ -21,7 +21,7 @@ In **Settings → Secrets and variables → Actions**, add the following reposit
 To set it up:
 1. [Create a Gmail account](https://accounts.google.com/signup)
 2. [Enable 2-Step Verification](https://myaccount.google.com/security)
-3. [Generate an App Password](https://myaccount.google.com/apppasswords) (`News Brief App`)
+3. [Generate an App Password](https://myaccount.google.com/apppasswords)
 
 Use that app password instead of your Gmail login when setting `GMAIL_APP_PASSWORD`.
 
