@@ -156,18 +156,21 @@ def create_portfolio_brief(summaries: list, client) -> str:
 
 def send_email(subject: str, body_md: str):
     load_dotenv()
-    user = os.getenv('YAHOO_EMAIL')
-    pwd = os.getenv('YAHOO_APP_PASSWORD')
+    user = os.getenv('GMAIL_EMAIL')
+    pwd = os.getenv('GMAIL_APP_PASSWORD')
     to   = os.getenv('TO_EMAIL')
+
     msg = EmailMessage()
     msg['Subject'], msg['From'], msg['To'] = subject, user, to
     html = md.markdown(body_md)
     msg.set_content('HTML only', subtype='plain')
     msg.add_alternative(html, subtype='html')
-    with smtplib.SMTP('smtp.mail.yahoo.com', 587) as s:
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as s:
         s.starttls()
         s.login(user, pwd)
         s.send_message(msg)
+
     print(f"✅ Email sent to {to}")
 
 

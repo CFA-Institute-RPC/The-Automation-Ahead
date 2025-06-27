@@ -10,11 +10,20 @@ Click **Fork** in the top-right corner to create your own copy under your GitHub
 
 In **Settings → Secrets and variables → Actions**, add the following repository secrets:
 
-* **OPENAI\_API\_KEY**: Your OpenAI API key.
-* **YAHOO\_EMAIL**: Your Yahoo email address for sending.
-* **YAHOO\_APP\_PASSWORD**: App password for your email provider.
-* **TO\_EMAIL**: Recipient address for the daily brief.
+* **OPENAI_API_KEY**: Your OpenAI API key.
+* **GMAIL_EMAIL**: A dedicated Gmail address that will send the brief.
+* **GMAIL_APP_PASSWORD**: The app-specific password generated for that Gmail account.
+* **TO_EMAIL**: Recipient address for the daily brief.
 * **PORTFOLIO**: Comma-separated list of tickers (e.g. `AAPL,MSFT,NVDA`).
+
+⚠️ **Warning:** We strongly recommend creating a **junk Gmail account** just for this project, not your personal address.
+
+To set it up:
+1. [Create a Gmail account](https://accounts.google.com/signup)
+2. [Enable 2-Step Verification](https://myaccount.google.com/security)
+3. [Generate an App Password](https://myaccount.google.com/apppasswords) (`News Brief App`)
+
+Use that app password instead of your Gmail login when setting `GMAIL_APP_PASSWORD`.
 
 ## 3️⃣ Configure RSS Feeds (Optional)
 
