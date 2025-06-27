@@ -4,7 +4,7 @@ This repository contains everything you need to set up a fully automated daily p
 
 ## 1️⃣ Fork the Repo
 
-Click **Fork** in the top-right corner to create your own copy under your GitHub account.
+Click **Fork** in the top-right corner of the [main repo](https://github.com/CFA-Institute-RPC/The-Automation-Ahead/tree/main) to create your own copy under your GitHub account.
 
 ## 2️⃣ Add Your Secrets
 
