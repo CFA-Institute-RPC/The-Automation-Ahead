@@ -72,18 +72,15 @@ def batch_docs(documents, model='text-embedding-3-small', token_limit=300000):
     if current: batches.append(current)
     return batches
 
-
 def init_vector_store():
     embedding = OpenAIEmbeddings(model='text-embedding-3-small')
     return Chroma(collection_name='rss_news_feeds', embedding_function=embedding)
-
 
 def ingest_vector_store(store, batches):
     for batch in batches:
         texts = [d['content'] for d in batch]
         metas = [d['metadata'] for d in batch]
         store.add_texts(texts, metadatas=metas)
-
 
 def make_system_prompt():
     return (
@@ -95,7 +92,6 @@ def make_system_prompt():
     "\n\n"
     "{context}"
     )
-
 
 def summarize_ticker(rag_chain, ticker: str) -> str:
     today = datetime.today().strftime('%Y-%m-%d')
@@ -131,21 +127,47 @@ def create_portfolio_brief(summaries: list, client) -> str:
     from langchain_core.documents import Document
     docs = [Document(page_content=s, metadata={'ticker': s.split('–')[0]}) for s in summaries]
     prompt = (
-        f"""You are a financial analyst and expert Markdown formatter.
+            f"""You are a financial analyst and expert Markdown formatter.
 
         Your task is to synthesize the following stock-specific news briefs into a structured, markdown-formatted report. Focus only on **material information** relevant to the portfolio.
 
         **Instructions:**
-        - Structure the output using **headings** for each portfolio stock (e.g., ## AAPL).
-        - Under each stock, use **bullet points** for each insight.
         - Use your expert financial skill to determine what actually has a high probability to be material and only highlight those stories. Be selective!
-        - Povide a clear explaination below the news on why the news could materially affect the stock - what are the potential outcomes? 
+        - Provide a clear explanation below the news on why the news could materially affect the stock—what are the potential outcomes?
         - Add **in-context citations** (e.g., (Source: Bloomberg, June 14)) to back up each point.
         - Do **not** wrap the output in code blocks.
         - Do **not** include commentary or filler—just structured insights.
 
-        Here are the news briefs: {str(docs)}"""
-    )
+        Use the following format:
+
+        ## Portfolio News Brief
+
+        ### 1. **AAPL – Apple Inc.**
+        **News:** Apple unveils Vision Pro headset with orders opening July 15 and shipments beginning in Q4 2025. (Source: Bloomberg, July 1)  
+        **Why Material:**  
+        - **New Revenue Stream:** Entry into mixed-reality could add a high-margin hardware line beyond iPhone/Mac, boosting hardware growth in FY26.  
+        - **Ecosystem Lock-In:** Developer investment in VisionOS apps may deepen user engagement across Apple services, supporting higher Services ARPU.  
+        - **Supply-Chain Impact:** Initial production constraints could pressure margins if yields ramp slowly, affecting gross margin guidance.
+
+        **News:** Apple is reportedly in talks with OpenAI to integrate ChatGPT into iOS 19, with potential announcement at WWDC. (Source: Reuters, June 30)  
+        **Why Material:**  
+        - **Product Differentiation:** Native integration of AI tools may boost device upgrade cycles and widen the innovation gap with Android.  
+        - **Services Upsell:** Could pave the way for premium AI features embedded in iCloud or Apple One subscriptions.  
+        - **Privacy Trade-offs:** Raises questions around Apple's traditional privacy positioning, which could impact regulatory perception.
+
+        ---
+
+        ### 2. **MSFT – Microsoft Corp.**
+        **News:** Microsoft finalizes $7.5 billion acquisition of game studio Obsidian to expand Xbox-exclusive titles. (Source: Wall Street Journal, July 2)  
+        **Why Material:**  
+        - **Content Strategy:** Strengthens Xbox content moat at a time when first-party titles are seen as a key competitive differentiator.  
+        - **Subscription Growth:** New exclusive titles likely to boost Game Pass subscriptions, a critical recurring revenue stream.  
+        - **Regulatory Watch:** Large gaming acquisitions remain under regulatory scrutiny, which could impact future deal pace.
+
+        ---
+
+        Here are the news briefs: {str(docs)}"""    
+        )
     comp = client.chat.completions.create(
         model='gpt-4.1',
         messages=[{'role': 'system', 'content': 'You are an expert financial analyst.'},
