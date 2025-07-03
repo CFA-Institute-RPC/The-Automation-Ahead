@@ -135,13 +135,15 @@ def create_portfolio_brief(summaries: list, client) -> str:
         - Use your expert financial skill to determine what actually has a high probability to be material and only highlight those stories. Be selective!
         - Provide a clear explanation below the news on why the news could materially affect the stock—what are the potential outcomes?
         - Add **in-context citations** (e.g., (Source: Bloomberg, June 14)) to back up each point.
+        - Avoid citing any analyst rating changes as material news.
         - Do **not** wrap the output in code blocks.
         - Do **not** include commentary or filler—just structured insights.
 
         Use the following format:
-
+    
         ## Portfolio News Brief
 
+        ---
         ### 1. **AAPL – Apple Inc.**
         **News:** Apple unveils Vision Pro headset with orders opening July 15 and shipments beginning in Q4 2025. (Source: Bloomberg, July 1)  
         **Why Material:**  
@@ -154,9 +156,8 @@ def create_portfolio_brief(summaries: list, client) -> str:
         - **Product Differentiation:** Native integration of AI tools may boost device upgrade cycles and widen the innovation gap with Android.  
         - **Services Upsell:** Could pave the way for premium AI features embedded in iCloud or Apple One subscriptions.  
         - **Privacy Trade-offs:** Raises questions around Apple's traditional privacy positioning, which could impact regulatory perception.
-
+        
         ---
-
         ### 2. **MSFT – Microsoft Corp.**
         **News:** Microsoft finalizes $7.5 billion acquisition of game studio Obsidian to expand Xbox-exclusive titles. (Source: Wall Street Journal, July 2)  
         **Why Material:**  
