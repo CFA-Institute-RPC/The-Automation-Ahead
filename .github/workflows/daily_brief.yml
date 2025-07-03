@@ -29,6 +29,6 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           TO_EMAIL:           ${{ secrets.TO_EMAIL }}
           OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          PORTFOLIO:          ${{ secrets.PORTFOLIO }}
+          PORTFOLIO:          ${{ vars.PORTFOLIO }}
         run: |
           python "Retrieval Augmented Generation/Portfolio News Updater/automation_scripts/daily_news_brief.py"

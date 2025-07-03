@@ -14,6 +14,9 @@ In **Settings → Secrets and variables → Actions**, add the following reposit
 * **GMAIL_EMAIL**: A dedicated Gmail address that will send the brief.
 * **GMAIL_APP_PASSWORD**: The app-specific password generated for that Gmail account.
 * **TO_EMAIL**: Recipient address for the daily brief.
+
+On the variables tab on the same page add your portfolio companies.
+
 * **PORTFOLIO**: Comma-separated list of tickers (e.g. `AAPL,MSFT,NVDA`).
 
 ⚠️ **Warning:** We strongly recommend creating a **junk Gmail account** just for this project, not your personal address.
