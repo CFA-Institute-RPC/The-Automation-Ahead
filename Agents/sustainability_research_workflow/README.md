@@ -12,7 +12,7 @@ This agent uses a hybrid Parallelization and Evaluator–Optimizer workflow patt
 
 ### Dependencies
 ```bash
-pip install langgraph langchain-google-genai langchain-openai pydantic python-dotenv
+pip pip install langgraph langchain-google-genai langchain-openai pydantic python-dotenv langchain-core google-genai 
 ```
 
 ## Quick Start
