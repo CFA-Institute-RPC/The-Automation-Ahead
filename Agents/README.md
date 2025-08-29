@@ -1,6 +1,6 @@
 # Agents Directory
 
-This directory contains the core AI agents and case study for **The Automation Ahead** project, demonstrating how AI agents can augment financial analysis and portfolio construction.
+This directory contains the code for the Agentic AI in Finance case studies for [**The Automation Ahead**](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series).
 
 ## Getting Started
 
@@ -30,22 +30,22 @@ This is the **primary entry point** and comprehensive case study that demonstrat
 
 ## Individual Agent Deep Dives
 
-If you want to examine the inner workings of specific agents, you can explore these individual agent directories:
+If you want to examine the inner workings of specific agents, you can explore these individual agentic workflow directories:
 
-### 🔍 Regime Screening Agent
+### 🔍 Regime Screening Agentic Workflow
 
-**Directory**: `regime_screening_agent/`  
-**Notebook**: `regime_screening_agent/regime_screening_agent.ipynb`
+**Directory**: `regime_screening_workflow/`  
+**Notebook**: `regime_screening_workflow/regime_screening_workflow.ipynb`
 
 This workflow specializes in:
 - Running financial screening based on user defined economic regime focecasts and predifined metric criteria tailored for different regimes and sectors. 
 - Data validation and 
 
 
-### 🌱 Sustainability Research Agent  
+### 🌱 Sustainability Research Agentic Workflow  
 
-**Directory**: `sustainability_research_agent/`  
-**Notebook**: `sustainability_research_agent/research_agent.ipynb`
+**Directory**: `sustainability_research_workflow/`  
+**Notebook**: `sustainability_research_workflow/research_workflow.ipynb`
 
 This workflow focuses on:
 - Running deep research on any topic
