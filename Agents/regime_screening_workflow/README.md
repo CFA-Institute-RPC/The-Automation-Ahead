@@ -23,15 +23,6 @@ Each step can be more or less autonomous, depending on user preference.
 - **Workflow Demonstration**: Uses the the routing, and parellel processing workflows to demonstrate their use with financial data.
 - **React Agent Demonstration**: Demostration of the use of react agents to cross-validate data accuracy from a predefined outlier table. 
 
-## Workflow Summary
-
-This use case follows a router workflow pattern, with regime-specific branching. Steps:
-	1.	Get Ticker
-	2.	Pull Financial Data
-	3.	Route to Economic Regime
-	4.	Calculate Regime-Specific Metrics
-	5.	Provide Data Validation Commentary
-	6.	Generate Scored Assessment
 
 ## Prerequisites
 
