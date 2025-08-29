@@ -21,10 +21,7 @@ Each step can be more or less autonomous, depending on user preference.
 
 - **LlamaIndex Integration**: Used LlamaIndex workflows and agents to automate fundamental stock screening 
 - **Workflow Demonstration**: Uses the the routing, and parellel processing workflows to demonstrate their use with financial data.
-- **Financial Metrics Analysis**: Automated calculation of key fundamental indicators
-- **Flexible Screening**: Supports both single ticker and parallel batch processing
-- **Regime Awareness**: Screens stocks based on different market regime contexts
-- **Data Validation**: ReAct-style agent setup to check data accuracy
+- **React Agent Demonstration**: Demostration of the use of react agents to cross-validate data accuracy from a predefined outlier table. 
 
 ## Workflow Summary
 
