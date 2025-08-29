@@ -31,8 +31,8 @@ import os
 from configuration import Configuration
 from graph import graph
 
-# Add research_agent to path
-sys.path.insert(0, os.path.join(os.getcwd(), 'sustainability_research_agent'))
+# Add research_workflow to path
+sys.path.insert(0, os.path.join(os.getcwd(), 'sustainability_research_workflow'))
 
 config = Configuration
 
