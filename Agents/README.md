@@ -15,7 +15,7 @@ Make sure to set these API keys in your environment or notebook configuration be
 
 ## Main Case Study
 
-### 📊 Agent-Augmented Portfolio Construction Case Study
+### Agent-Augmented Portfolio Construction Case Study
 
 **File**: `Agent-Augmented Portfolio Construction - Case Study.ipynb`
 
@@ -32,7 +32,7 @@ This is the **primary entry point** and comprehensive case study that demonstrat
 
 If you want to examine the inner workings of specific agents, you can explore these individual agentic workflow directories:
 
-### 🔍 Regime Screening Agentic Workflow
+### Regime Screening Agentic Workflow
 
 **Directory**: `regime_screening_workflow/`  
 **Notebook**: `regime_screening_workflow/regime_screening_workflow.ipynb`
@@ -42,7 +42,7 @@ This workflow specializes in:
 - Data validation and 
 
 
-### 🌱 Sustainability Research Agentic Workflow  
+### Sustainability Research Agentic Workflow  
 
 **Directory**: `sustainability_research_workflow/`  
 **Notebook**: `sustainability_research_workflow/research_workflow.ipynb`
