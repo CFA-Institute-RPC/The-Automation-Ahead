@@ -70,6 +70,9 @@ if __name__ == "__main__":
 
 #### Multi-ticker Workflow
 ```python
+import sys, os
+sys.path.append(os.path.abspath(".."))
+
 async def main():
 from regime_workflows import ParallelRegimeScreeningWorkflow
 from llama_index.core.workflow import InputRequiredEvent,HumanResponseEvent
