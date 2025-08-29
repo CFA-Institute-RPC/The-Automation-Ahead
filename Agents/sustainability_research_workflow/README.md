@@ -1,15 +1,8 @@
-# Sustainability Research Agent
+# Deep Research Sustainability Screening Workflow
+This agent uses a hybrid Parallelization and Evaluator–Optimizer workflow pattern to perform deep research on a company’s adoption of innovative sustainable technologies. It enables investment teams to assess ESG leadership using dynamic, internet-scale data.
 
-An AI-powered research agent for conducting comprehensive research tailored to sustainability screening using LangGraph.
-
-## Key Features
-
-- **LangGraph State Management**: Robust workflow orchestration with state tracking
-- **Multi-Model AI**: Leverages both Gemini and OpenAI models for different tasks
-- **Intelligent Query Generation**: AI-powered research query formulation
-- **Web Research Integration**: Automated information gathering and validation
-- **Reflection & Analysis**: Multi-pass analysis with quality assurance
-- **Configurable Research Depth**: Adjustable query count and research iterations
+## Workflow Structure
+![sustainability screening workflow](../assets/svgs/sustainability_screening.drawio.svg)
 
 ## Prerequisites
 
@@ -29,38 +22,27 @@ pip install langgraph langchain-google-genai langchain-openai pydantic python-do
 Open `research_agent.ipynb` to see a complete demonstration of the agent, including:
 - Configuration setup and model selection
 - Step-by-step research workflow execution
-- ESG analysis examples with real companies
-- Output formatting and interpretation
 
-### Programmatic Usage
+### Usage
 
 ```python
-from graph import graph_builder
+import sys
+import os
 from configuration import Configuration
-from state import OverallState
+from graph import graph
 
-# Configure the agent
-config = Configuration(
-    query_generator_model="gemini-2.0-flash",
-    reflection_model="gpt-5-nano-2025-08-07", 
-    reasoning_model="gpt-5-mini-2025-08-07",
-    number_of_initial_queries=3
-)
+# Add research_agent to path
+sys.path.insert(0, os.path.join(os.getcwd(), 'sustainability_research_agent'))
 
-# Initialize research state
-initial_state = OverallState(
-    research_question="What are Tesla's current sustainability initiatives and ESG performance?",
-    queries=[],
-    research_results=[],
-    reflection="",
-    final_answer=""
-)
+config = Configuration
 
-# Execute research workflow
-result = graph_builder.compile().invoke(initial_state, config={"configurable": config.dict()})
+state = graph.invoke(
+        {"messages": [{"role": "user", "content": formated_prompt}]}
+    )
+report = state["messages"][-1].content
 ```
 
-## Architecture Components
+## Core Components
 
 ### Core Modules
 
@@ -72,55 +54,8 @@ result = graph_builder.compile().invoke(initial_state, config={"configurable": c
 - **`prompts.py`**: AI prompt templates for different workflow stages
 - **`utils.py`**: Utility functions for data processing and formatting
 
-### Workflow Nodes
-
-1. **Generate Queries**: AI-powered research query formulation
-2. **Web Research**: Automated information gathering and validation
-3. **Reflection**: Quality assurance and analysis validation
-4. **Finalize Answer**: Comprehensive report generation
-
-## Configuration Options
-
-### Model Selection
-- **Query Generator**: Gemini 2.0 Flash (default) for research planning
-- **Reflection Model**: GPT-5 Nano for analysis validation  
-- **Reasoning Model**: GPT-5 Mini for complex analysis tasks
-
-### Research Parameters
-- **Initial Query Count**: Number of research queries to generate (default: 3)
-- **Research Depth**: Configurable iteration levels
-- **Output Format**: Structured reporting with customizable templates
-
-## Usage Examples
-
-### ESG Analysis
-```python
-research_question = "Analyze Microsoft's carbon neutrality commitments and progress"
-```
-
-### Sustainability Screening
-```python
-research_question = "Compare renewable energy adoption across major tech companies"
-```
-
-### Impact Assessment
-```python
-research_question = "Evaluate the social impact of supply chain practices in the fashion industry"
-```
-
-## Output Format
-
-The agent produces structured reports including:
-- **Executive Summary**: Key findings and recommendations
-- **Detailed Analysis**: Comprehensive research results with sources
-- **ESG Metrics**: Quantitative sustainability indicators where available
-- **Risk Assessment**: Potential sustainability-related risks and opportunities
-- **Sources**: Referenced materials and validation information
 
 ## Usage Notes
 
 - Adapted from [Google Gemini's LangGraph Research Agent](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart)
-- Requires active internet connection for web research capabilities
-- API costs scale with research depth and complexity
-- Results quality improves with more specific, focused research questions
-- Built-in logging tracks research progress and debugging information
+
