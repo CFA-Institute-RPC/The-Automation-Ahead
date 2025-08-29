@@ -19,7 +19,7 @@ pip pip install langgraph langchain-google-genai langchain-openai pydantic pytho
 
 ### From the Jupyter Notebook
 
-Open `research_agent.ipynb` to see a complete demonstration of the agent, including:
+Open `research_workflow.ipynb` to see a complete demonstration of the agent, including:
 - Configuration setup and model selection
 - Step-by-step research workflow execution
 
