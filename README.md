@@ -27,7 +27,7 @@ The [Automation Ahead Content Series](https://rpc.cfainstitute.org/research/the-
 1. [Introduction and Automation Framework](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/introduction): Overview of automation opportunities in the investment industry.
 2. [Practical Guide for LLMs in the Financial Industry](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/practical-guide-for-llms-in-the-financial-industry): Hands-on insights into leveraging large language models (LLMs) for financial workflows.
 3. [Retrieval Augmented Generation (RAG)](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/retrieval-augmented-generation): Deep dive into how RAG works and explores how to set up a RAG pipeline for information extraction from proxy statements.
-4. [Agentic AI For Finance](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/agentic-ai-for-finance#4257225834-3138560699): Explores the intricacies of agentic ai systems uses in finance, offering example use cases, tips and case studies that follow the code in this repo.
+4. [Agentic AI For Finance](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/agentic-ai-for-finance#4257225834-3138560699): Explores the intricacies of agentic ai systems in finance, offering example use cases, tips and case studies that follow the code in this repo.
 
 We invite you to suggest topics or tools you'd like to see covered in future installments by starting a discussion or opening an issue.
 
