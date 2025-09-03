@@ -8,10 +8,9 @@ This directory contains the code for the Agentic AI in Finance case studies for 
 
 Before running any notebooks in this directory, you'll need to obtain API keys for:
 
-- **OpenAI API**: Required for GPT models used throughout the regime screening and sustainability workflows
-- **Google Gemini API**: Required for Gemini models used in the sustainability research workflow
+- **OpenAI API**: Required for GPT models used throughout the regime screening and sustainability workflows. Go [here](https://platform.openai.com/api-keys) to create an OpenaAI api key.
+- **Google Gemini API**: Required for Gemini models used in the sustainability research workflow. Go [here](https://aistudio.google.com/apikey) to create a Gemini API Key.
 
-Make sure to set these API keys in your environment or notebook configuration before running any code.
 
 ## Main Case Study
 
