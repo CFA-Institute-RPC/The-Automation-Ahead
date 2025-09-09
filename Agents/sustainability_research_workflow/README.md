@@ -1,5 +1,5 @@
 # Deep Research Sustainability Screening Workflow
-This agent uses a hybrid Parallelization and Evaluator–Optimizer workflow pattern to perform deep research on a company’s adoption of innovative sustainable technologies. It enables investment teams to assess ESG leadership using dynamic, internet-scale data.
+This agent uses a hybrid Parallelization and Evaluator–Optimizer workflow pattern to perform deep research on a company’s adoption of innovative sustainable technologies. It enables investment teams to assess sustainability leadership using dynamic, internet-scale data.
 
 ## Workflow Structure
 ![sustainability screening workflow](../assets/svgs/sustainability_screening.drawio.svg)

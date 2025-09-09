@@ -37,8 +37,8 @@ If you want to examine the inner workings of specific agents, you can explore th
 **Notebook**: `regime_screening_workflow/regime_screening_workflow.ipynb`
 
 This workflow specializes in:
-- Running financial screening based on user defined economic regime focecasts and predifined metric criteria tailored for different regimes and sectors. 
-- Data validation and 
+- Running financial screening based on user defined economic regime focecasts and predifined metric criteria tailored for different regimes and sectors.
+- ReAct Agent based data validation. 
 
 
 ### Sustainability Research Agentic Workflow  
