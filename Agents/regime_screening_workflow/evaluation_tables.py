@@ -38,7 +38,7 @@ OUTLIER_TABLE = """
 | Interest Coverage (EBIT / Interest) | 3.0x | 15.0x | 12.0x | -15x (floor 0) | 33x | Very low coverage is a risk; very high may hide near-zero interest expense. |
 | EBITDA Margin Volatility (std) | 1.0% | 5.0% | 4.0 pp | -5.0% (floor 0) | 11.0% | Excessive volatility suggests instability; near-zero (if seen) might prompt sanity check. |
 | Cash & ST Inv. / Total Debt | 0.2x | 1.0x | 0.8x | -1.0x (floor 0) | 2.2x | Very low ratio signals liquidity stress; very high may reflect conservative balance sheet or classification issues. |
-| DSO Change (YoY, days) | -5d | +5d | 10d | -20d | +20d | Large positive = slowing collections; large negative = aggressive behavior or write-offs. |"""
+| DSO Change (YoY, days) | 0 | +5d | 10d | -0 | +20d | Large positive = slowing collections; 0 is the extreme end of   |"""
 
 # --Financials Criteria--
 

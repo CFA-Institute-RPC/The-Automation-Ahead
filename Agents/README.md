@@ -16,6 +16,8 @@ Before running any notebooks in this directory, you'll need to obtain API keys f
 
 ### Agent-Augmented Portfolio Construction Case Study
 
+Run in Colab: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RAjncZkUlsDZSDj2r8uMa3w9OCw8YsK8?usp=sharing)
+
 **File**: `Agent-Augmented Portfolio Construction - Case Study.ipynb`
 
 This is the **primary entry point** and comprehensive case study that demonstrates how Agentic workflows can enhance traditional portfolio construction processes. The notebook showcases:
