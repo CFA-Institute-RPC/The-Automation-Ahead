@@ -3,7 +3,7 @@ feedparser==6.0.11
 httptools==0.6.4
 jaraco.collections==5.1.0
 langchain-chroma==0.2.4
-langchain-community==0.3.26
+langchain-community==0.3.27
 langchain-openai==0.3.24
 markdown==3.8.2
 pip-chill==1.0.3
