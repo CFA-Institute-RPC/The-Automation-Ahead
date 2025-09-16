@@ -1,6 +1,6 @@
 # Agents Directory
 
-This directory contains the code for the Agentic AI in Finance case studies for [**The Automation Ahead**](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series).
+This directory contains the code for the Agentic AI in Finance case studies for [**Agentic AI For Finance: Workflows, Tips, and Case Studies**](https://rpc.cfainstitute.org/research/the-automation-ahead-content-series/agentic-ai-for-finance#4257225834-1376932270).
 
 ## Getting Started
 
