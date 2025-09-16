@@ -29,7 +29,7 @@ This is the **primary entry point** and comprehensive case study that demonstrat
 
 **Start here** if you want to understand the full workflow and see how all the agents work together in practice.
 
-## Individual Agent Deep Dives
+## Individual Workflow Deep Dives
 
 If you want to examine the inner workings of specific agents, you can explore these individual agentic workflow directories:
 
