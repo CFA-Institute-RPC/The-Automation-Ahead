@@ -54,17 +54,22 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 @step(workflow=RegimeScreeningWorkflow, num_workers=1)
 async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    regime_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="EconomicRegime",
-        waiter_event=InputRequiredEvent(
-            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
-        ),
-    )
-    try:
-        regime_choice = regime_opts[int(regime_resp.response.strip())]
-    except Exception:
-        return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
+
+    state = await ctx.store.get_state()
+    if state.EconomicRegime is None:
+        regime_resp = await ctx.wait_for_event(
+            HumanResponseEvent,
+            waiter_id="EconomicRegime",
+            waiter_event=InputRequiredEvent(
+                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
+            ),
+        )
+        try:
+            regime_choice = regime_opts[int(regime_resp.response.strip())]
+        except Exception:
+            return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
+        async with ctx.store.edit_state() as st:
+            st.EconomicRegime = regime_choice
 
     ticker_resp = await ctx.wait_for_event(
         HumanResponseEvent,
@@ -73,7 +78,6 @@ async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker |
     )
     ticker = ticker_resp.response.strip().upper()
     async with ctx.store.edit_state() as st:
-        st.EconomicRegime = regime_choice
         st.Ticker = ticker
     return ProcessTicker(ticker=ticker)
 
@@ -343,17 +347,22 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 @step(workflow=ParallelRegimeScreeningWorkflow, num_workers=1)
 async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | StopEvent | ProcessTicker:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    regime_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="EconomicRegime",
-        waiter_event=InputRequiredEvent(
-            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
-        ),
-    )
-    try:
-        regime_choice = regime_opts[int(regime_resp.response.strip())]
-    except Exception:
-        return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
+
+    state = await ctx.store.get_state()
+    if state.EconomicRegime is None:
+        regime_resp = await ctx.wait_for_event(
+            HumanResponseEvent,
+            waiter_id="EconomicRegime",
+            waiter_event=InputRequiredEvent(
+                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
+            ),
+        )
+        try:
+            regime_choice = regime_opts[int(regime_resp.response.strip())]
+        except Exception:
+            return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
+        async with ctx.store.edit_state() as st:
+            st.EconomicRegime = regime_choice
 
     tickers_resp = await ctx.wait_for_event(
         HumanResponseEvent,
@@ -362,7 +371,6 @@ async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | St
     )
     tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
     async with ctx.store.edit_state() as st:
-        st.EconomicRegime = regime_choice
         st.Tickers = tickers
         st.children = {t: TickerState(Ticker=t) for t in tickers}
         st.completed = set()
