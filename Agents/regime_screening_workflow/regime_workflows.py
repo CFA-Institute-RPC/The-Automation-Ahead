@@ -1,6 +1,13 @@
 import asyncio
 import json
+import curl_cffi.requests as _cr
 import yfinance as yf
+
+_orig_req = _cr.Session.request
+def _no_verify_req(self, *args, **kwargs):
+    kwargs.setdefault("verify", False)
+    return _orig_req(self, *args, **kwargs)
+_cr.Session.request = _no_verify_req
 from llama_index.llms.openai import OpenAI
 from llama_index.core.workflow import (
     StartEvent,
