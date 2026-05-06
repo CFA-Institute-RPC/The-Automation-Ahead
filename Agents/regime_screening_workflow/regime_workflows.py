@@ -53,19 +53,20 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 
 @step(workflow=RegimeScreeningWorkflow)
 async def start_workflow(ctx: Context[State], ev: StartEvent) -> None | ProcessTicker:
-    regime_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="EconomicRegime",
-        waiter_event=InputRequiredEvent(
-            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
-        ),
-    )
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    try:
-        regime_choice = regime_opts[int(regime_resp.response.strip())]
-    except Exception:
-        print('An error occured. Try again...')
-        start_workflow(ctx,ev)
+    regime_choice = None
+    while regime_choice is None:
+        regime_resp = await ctx.wait_for_event(
+            HumanResponseEvent,
+            waiter_id="EconomicRegime",
+            waiter_event=InputRequiredEvent(
+                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+            ),
+        )
+        try:
+            regime_choice = regime_opts[int(regime_resp.response.strip())]
+        except Exception:
+            print('Invalid input. Enter 0, 1, 2, or 3.')
 
     ticker_resp = await ctx.wait_for_event(
         HumanResponseEvent,
@@ -344,19 +345,20 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
 @step(workflow=ParallelRegimeScreeningWorkflow)
 async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
-    regime_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="EconomicRegime",
-        waiter_event=InputRequiredEvent(
-            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
-        ),
-    )
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    try:
-        regime_choice = regime_opts[int(regime_resp.response.strip())]
-    except Exception:
-        print("Invalid regime. Try again.")
-        return ctx.send_event(StartEvent())
+    regime_choice = None
+    while regime_choice is None:
+        regime_resp = await ctx.wait_for_event(
+            HumanResponseEvent,
+            waiter_id="EconomicRegime",
+            waiter_event=InputRequiredEvent(
+                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+            ),
+        )
+        try:
+            regime_choice = regime_opts[int(regime_resp.response.strip())]
+        except Exception:
+            print("Invalid input. Enter 0, 1, 2, or 3.")
 
     tickers_resp = await ctx.wait_for_event(
         HumanResponseEvent,
