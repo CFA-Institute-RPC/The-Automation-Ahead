@@ -60,7 +60,8 @@ async def start_workflow(ctx: Context[State], ev: StartEvent) -> None | ProcessT
             HumanResponseEvent,
             waiter_id="EconomicRegime",
             waiter_event=InputRequiredEvent(
-                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession",
+                waiter_id="EconomicRegime",
             ),
         )
         try:
@@ -71,7 +72,10 @@ async def start_workflow(ctx: Context[State], ev: StartEvent) -> None | ProcessT
     ticker_resp = await ctx.wait_for_event(
         HumanResponseEvent,
         waiter_id="Ticker",
-        waiter_event=InputRequiredEvent(prefix="Input a ticker for the stock you want to screen:"),
+        waiter_event=InputRequiredEvent(
+            prefix="Input a ticker for the stock you want to screen:",
+            waiter_id="Ticker",
+        ),
     )
     ticker = str(ticker_resp.response.strip())
     
@@ -352,7 +356,8 @@ async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | Pr
             HumanResponseEvent,
             waiter_id="EconomicRegime",
             waiter_event=InputRequiredEvent(
-                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession",
+                waiter_id="EconomicRegime",
             ),
         )
         try:
@@ -363,7 +368,10 @@ async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | Pr
     tickers_resp = await ctx.wait_for_event(
         HumanResponseEvent,
         waiter_id="Tickers",
-        waiter_event=InputRequiredEvent(prefix="Enter comma-separated tickers (e.g. aapl,nvda,jnj):"),
+        waiter_event=InputRequiredEvent(
+            prefix="Enter comma-separated tickers (e.g. aapl,nvda,jnj):",
+            waiter_id="Tickers",
+        ),
     )
     tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
 
