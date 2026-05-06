@@ -15,8 +15,6 @@ from llama_index.core.workflow import (
     Context,
     step,
     Workflow,
-    InputRequiredEvent,
-    HumanResponseEvent,
 )
 from llama_index.core.agent.workflow import ReActAgent
 from regime_state import (
@@ -52,33 +50,15 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 # --- RegimeScreeningWorkflow Steps ---------------------------------------------------------
 
 @step(workflow=RegimeScreeningWorkflow)
-async def start_workflow(ctx: Context[State], ev: StartEvent) -> None | ProcessTicker:
+async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    regime_choice = None
-    while regime_choice is None:
-        regime_resp = await ctx.wait_for_event(
-            HumanResponseEvent,
-            waiter_id="EconomicRegime",
-            waiter_event=InputRequiredEvent(
-                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession",
-                waiter_id="EconomicRegime",
-            ),
-        )
-        try:
-            regime_choice = regime_opts[int(regime_resp.response.strip())]
-        except Exception:
-            print('Invalid input. Enter 0, 1, 2, or 3.')
-
-    ticker_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="Ticker",
-        waiter_event=InputRequiredEvent(
-            prefix="Input a ticker for the stock you want to screen:",
-            waiter_id="Ticker",
-        ),
-    )
-    ticker = str(ticker_resp.response.strip())
-    
+    try:
+        regime_choice = regime_opts[int(str(ev.get("regime", "")).strip())]
+    except Exception:
+        return StopEvent(result="Invalid regime. Pass regime=0/1/2/3 to w.run().")
+    ticker = str(ev.get("ticker", "")).strip().upper()
+    if not ticker:
+        return StopEvent(result="No ticker provided. Pass ticker='AAPL' to w.run().")
     async with ctx.store.edit_state() as st:
         st.EconomicRegime = regime_choice
         st.Ticker = ticker
@@ -348,39 +328,21 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
 @step(workflow=ParallelRegimeScreeningWorkflow)
-async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
+async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | StopEvent:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    regime_choice = None
-    while regime_choice is None:
-        regime_resp = await ctx.wait_for_event(
-            HumanResponseEvent,
-            waiter_id="EconomicRegime",
-            waiter_event=InputRequiredEvent(
-                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession",
-                waiter_id="EconomicRegime",
-            ),
-        )
-        try:
-            regime_choice = regime_opts[int(regime_resp.response.strip())]
-        except Exception:
-            print("Invalid input. Enter 0, 1, 2, or 3.")
-
-    tickers_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="Tickers",
-        waiter_event=InputRequiredEvent(
-            prefix="Enter comma-separated tickers (e.g. aapl,nvda,jnj):",
-            waiter_id="Tickers",
-        ),
-    )
-    tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
-
+    try:
+        regime_choice = regime_opts[int(str(ev.get("regime", "")).strip())]
+    except Exception:
+        return StopEvent(result="Invalid regime. Pass regime=0/1/2/3 to w.run().")
+    tickers_raw = str(ev.get("tickers", ""))
+    tickers = [t.strip().upper() for t in tickers_raw.split(",") if t.strip()]
+    if not tickers:
+        return StopEvent(result="No tickers provided. Pass tickers='AAPL,MSFT' to w.run().")
     async with ctx.store.edit_state() as st:
         st.EconomicRegime = regime_choice
         st.Tickers = tickers
         st.children = {t: TickerState(Ticker=t) for t in tickers}
         st.completed = set()
-
     for t in tickers:
         ctx.send_event(ProcessTicker(ticker=t))
 
