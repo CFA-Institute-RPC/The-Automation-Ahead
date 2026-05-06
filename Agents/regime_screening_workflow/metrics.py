@@ -1,36 +1,50 @@
 import numpy as np
 import pandas as pd
 
-# -- Helper ---------------------------------------------------------
-def safe_get(df, field_name):
-    """
-    Safely get a field from DataFrame. Returns NaN series if field doesn't exist.
-    """
-    if field_name in df.index:
-        return df.loc[field_name, :]
-    else:
-        print(f"Warning: '{field_name}' not found in data")
-        return pd.Series(np.nan, index=df.columns, name=field_name)
+# -- Helpers --------------------------------------------------------
+
+def _get_row(df, *keys):
+    """Try each key in order; return NaN series if none found."""
+    for k in keys:
+        if k in df.index:
+            return df.loc[k, :]
+    cols = df.columns if hasattr(df, 'columns') else []
+    return pd.Series(np.nan, index=cols, name=keys[0])
+
+def _iloc0(series):
+    """Safe iloc[0]; NaN if empty."""
+    s = series.dropna()
+    return s.iloc[0] if len(s) >= 1 else np.nan
+
+def _iloc1(series):
+    """Safe iloc[1]; NaN if fewer than 2 points."""
+    s = series.dropna()
+    return s.iloc[1] if len(s) >= 2 else np.nan
+
+def _yoy(series):
+    """Year-over-year growth; NaN if < 2 non-null points or zero denominator."""
+    s = series.dropna()
+    if len(s) < 2 or s.iloc[1] == 0:
+        return np.nan
+    return (s.iloc[0] - s.iloc[1]) / s.iloc[1]
 
 # -- Non-Financials Metrics -----------------------------------------
 
 def revenue_growth(ann_incstm, qtr_incstm):
-    ann_rev = safe_get(ann_incstm, 'TotalRevenue')
-    qtr_rev = safe_get(qtr_incstm, 'TotalRevenue')
-    ann_rev_g = (ann_rev.iloc[0] - ann_rev.iloc[1]) / ann_rev.iloc[1]
-    qtr_rev_g = (qtr_rev.iloc[0] - qtr_rev.iloc[1]) / qtr_rev.iloc[1]
+    ann_rev = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    qtr_rev = _get_row(qtr_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
     return {
         "Annual Revenue": ann_rev,
         "Quarter Revenue": qtr_rev,
-        "Annual Revenue Growth": ann_rev_g,
-        "Quarter Revenue Growth": qtr_rev_g,
+        "Annual Revenue Growth": _yoy(ann_rev),
+        "Quarter Revenue Growth": _yoy(qtr_rev),
     }
 
 def ebitda_margin(ann_incstm, qtr_incstm):
-    ann_rev = safe_get(ann_incstm, 'TotalRevenue')
-    ann_ebitda = safe_get(ann_incstm, 'EBITDA')
-    qtr_rev = safe_get(qtr_incstm, 'TotalRevenue')
-    qtr_ebitda = safe_get(qtr_incstm, 'EBITDA')
+    ann_rev    = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    ann_ebitda = _get_row(ann_incstm, 'EBITDA')
+    qtr_rev    = _get_row(qtr_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    qtr_ebitda = _get_row(qtr_incstm, 'EBITDA')
     ann_margin = ann_ebitda / ann_rev
     qtr_margin = qtr_ebitda / qtr_rev
     return {
@@ -40,16 +54,16 @@ def ebitda_margin(ann_incstm, qtr_incstm):
         "Quarter EBITDA": qtr_ebitda,
         "Quarter Revenue": qtr_rev,
         "Quarter EBITDA Margin": qtr_margin,
-        "Annual EBITDA Margin (Latest)": ann_margin.iloc[0],
-        "Quarter EBITDA Margin (Latest)": qtr_margin.iloc[0],
+        "Annual EBITDA Margin (Latest)": _iloc0(ann_margin),
+        "Quarter EBITDA Margin (Latest)": _iloc0(qtr_margin),
     }
 
 def net_debt_to_ebitda(ann_incstm, ann_bs):
-    net_debt_series = safe_get(ann_bs, 'NetDebt')
-    ebitda_series   = safe_get(ann_incstm, 'EBITDA')
-    net_debt_latest = net_debt_series.iloc[0]
-    ebitda_latest   = ebitda_series.iloc[0]
-    ratio_latest = net_debt_latest / ebitda_latest
+    net_debt_series = _get_row(ann_bs, 'NetDebt')
+    ebitda_series   = _get_row(ann_incstm, 'EBITDA')
+    net_debt_latest = _iloc0(net_debt_series)
+    ebitda_latest   = _iloc0(ebitda_series)
+    ratio_latest = (net_debt_latest / ebitda_latest) if ebitda_latest and ebitda_latest != 0 else np.nan
     with np.errstate(divide='ignore', invalid='ignore'):
         ratio_series = net_debt_series / ebitda_series
     return {
@@ -60,9 +74,9 @@ def net_debt_to_ebitda(ann_incstm, ann_bs):
     }
 
 def ebitda_margin_volatility(ann_incstm):
-    ann_rev = safe_get(ann_incstm, 'TotalRevenue')
-    ann_ebitda = safe_get(ann_incstm, 'EBITDA')
-    ann_gm = ann_ebitda / ann_rev
+    ann_rev    = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    ann_ebitda = _get_row(ann_incstm, 'EBITDA')
+    ann_gm     = ann_ebitda / ann_rev
     ann_gm_vol = ann_gm.sort_index().std()
     return {
         "Annual EBITDA Margin (series)": ann_gm,
@@ -70,14 +84,14 @@ def ebitda_margin_volatility(ann_incstm):
     }
 
 def gross_margin_trend_bps(ann_incstm, qtr_incstm):
-    ann_rev = safe_get(ann_incstm, 'TotalRevenue')
-    ann_cogs = safe_get(ann_incstm, 'CostOfRevenue')
-    ann_gm = ((ann_rev - ann_cogs) / ann_rev).sort_index()
+    ann_rev  = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    ann_cogs = _get_row(ann_incstm, 'CostOfRevenue', 'CostOfGoodsAndServicesSold')
+    ann_gm   = ((ann_rev - ann_cogs) / ann_rev).sort_index()
     ann_trend = ann_gm - ann_gm.shift(1)
     ann_trend_avg_bps = ann_trend.mean() * 10000.0
-    qtr_rev = safe_get(qtr_incstm, 'TotalRevenue')
-    qtr_cogs = safe_get(qtr_incstm, 'CostOfRevenue')
-    qtr_gm = ((qtr_rev - qtr_cogs) / qtr_rev).sort_index()
+    qtr_rev  = _get_row(qtr_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    qtr_cogs = _get_row(qtr_incstm, 'CostOfRevenue', 'CostOfGoodsAndServicesSold')
+    qtr_gm   = ((qtr_rev - qtr_cogs) / qtr_rev).sort_index()
     qtr_trend = qtr_gm - qtr_gm.shift(1)
     qtr_trend_avg_bps = qtr_trend.mean() * 10000.0
     return {
@@ -90,16 +104,19 @@ def gross_margin_trend_bps(ann_incstm, qtr_incstm):
     }
 
 def inventory_turnover(ann_incstm, ann_bs):
-    cogs = safe_get(ann_incstm, 'CostOfRevenue')
-    inv  = safe_get(ann_bs, 'Inventory')
-    if inv.dropna().shape[0] >= 2:
-        avg_inv_latest_two = inv.iloc[:2].mean()
+    cogs = _get_row(ann_incstm, 'CostOfRevenue', 'CostOfGoodsAndServicesSold')
+    inv  = _get_row(ann_bs, 'Inventory')
+    inv_clean = inv.dropna()
+    if len(inv_clean) >= 2:
+        avg_inv_latest_two = inv_clean.iloc[:2].mean()
+    elif len(inv_clean) == 1:
+        avg_inv_latest_two = inv_clean.iloc[0]
     else:
-        avg_inv_latest_two = inv.iloc[0]
-    turnover_latest = (cogs.iloc[0] / avg_inv_latest_two) if avg_inv_latest_two != 0 else np.nan
-    avg_inv_series = inv.rolling(2, min_periods=1, axis=0).mean()
+        avg_inv_latest_two = np.nan
+    cogs0 = _iloc0(cogs)
+    turnover_latest = (cogs0 / avg_inv_latest_two) if (avg_inv_latest_two and avg_inv_latest_two != 0) else np.nan
     with np.errstate(divide='ignore', invalid='ignore'):
-        turnover_series = cogs / avg_inv_series
+        turnover_series = cogs / inv
     return {
         "Annual COGS": cogs,
         "Annual Inventory": inv,
@@ -109,10 +126,11 @@ def inventory_turnover(ann_incstm, ann_bs):
     }
 
 def interest_coverage(ann_incstm):
-    ebit    = safe_get(ann_incstm, 'EBIT')
-    int_exp = safe_get(ann_incstm, 'InterestExpense')
-    denom_latest = abs(int_exp.iloc[0])
-    coverage_latest = (ebit.iloc[0] / denom_latest) if denom_latest != 0 else float('inf')
+    ebit    = _get_row(ann_incstm, 'EBIT', 'OperatingIncome')
+    int_exp = _get_row(ann_incstm, 'InterestExpense')
+    denom0  = _iloc0(int_exp)
+    denom_latest = abs(denom0) if not np.isnan(denom0) else 0
+    coverage_latest = (_iloc0(ebit) / denom_latest) if denom_latest != 0 else float('inf')
     with np.errstate(divide='ignore', invalid='ignore'):
         coverage_series = ebit / abs(int_exp)
     return {
@@ -123,14 +141,14 @@ def interest_coverage(ann_incstm):
     }
 
 def cash_to_debt(ann_bs):
-    cash = safe_get(ann_bs, 'CashAndCashEquivalents')
-    sti  = safe_get(ann_bs, 'ShortTermInvestments')
-    total_debt = safe_get(ann_bs, 'TotalDebt')
-    cash_sti = cash + sti
+    cash       = _get_row(ann_bs, 'CashAndCashEquivalents', 'Cash')
+    sti        = _get_row(ann_bs, 'ShortTermInvestments', 'OtherShortTermInvestments')
+    total_debt = _get_row(ann_bs, 'TotalDebt')
+    cash_sti   = cash + sti
     with np.errstate(divide='ignore', invalid='ignore'):
         ratio_series = cash_sti / total_debt
-    den_latest = total_debt.iloc[0]
-    ratio_latest = (cash_sti.iloc[0] / den_latest) if den_latest != 0 else float('inf')
+    den_latest   = _iloc0(total_debt)
+    ratio_latest = (_iloc0(cash_sti) / den_latest) if (den_latest and den_latest != 0) else float('inf')
     return {
         "Annual Cash": cash,
         "Annual Short Term Investments": sti,
@@ -141,14 +159,11 @@ def cash_to_debt(ann_bs):
     }
 
 def dso_change_yoy(ann_incstm, ann_bs, days=365):
-    ar  = safe_get(ann_bs, 'AccountsReceivable')
-    rev = safe_get(ann_incstm, 'TotalRevenue')
-    dso_series = (ar / rev.replace(0, np.nan)) * days
-    dso_series = dso_series.dropna()
-    if dso_series.shape[0] < 2:
-        delta_latest = np.nan
-    else:
-        delta_latest = dso_series.iloc[0] - dso_series.iloc[1]
+    ar  = _get_row(ann_bs, 'AccountsReceivable', 'NetReceivables')
+    rev = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
+    dso_series   = (ar / rev.replace(0, np.nan)) * days
+    dso_series   = dso_series.dropna()
+    delta_latest = (dso_series.iloc[0] - dso_series.iloc[1]) if len(dso_series) >= 2 else np.nan
     return {
         "Annual Accounts Receivable": ar,
         "Annual Revenue": rev,
@@ -159,51 +174,49 @@ def dso_change_yoy(ann_incstm, ann_bs, days=365):
 # -- Financials Metrics ---------------------------------------------
 
 def ppnr(ann_incstm):
-    nii   = safe_get(ann_incstm, 'NetInterestIncome')
-    total_rev = safe_get(ann_incstm, 'TotalRevenue')
+    nii       = _get_row(ann_incstm, 'NetInterestIncome')
+    total_rev = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
     nonint_income = total_rev - nii
-    sga   = safe_get(ann_incstm, 'SellingGeneralAndAdministration')
-    other = safe_get(ann_incstm, 'OtherNonInterestExpense')
+    sga   = ann_incstm.loc['SellingGeneralAndAdministration', :] if 'SellingGeneralAndAdministration' in ann_incstm.index else 0
+    other = ann_incstm.loc['OtherNonInterestExpense', :] if 'OtherNonInterestExpense' in ann_incstm.index else 0
     nonint_expense = sga + other
     ppnr_series = (nii + nonint_income - nonint_expense).sort_index(ascending=False)
-    ppnr_latest = ppnr_series.iloc[0]
-    ppnr_growth = (ppnr_series.iloc[0] - ppnr_series.iloc[1]) / ppnr_series.iloc[1]
     return {
         "PPNR (series)": ppnr_series,
-        "PPNR (Latest)": ppnr_latest,
-        "PPNR Growth YoY (Latest)": ppnr_growth,
+        "PPNR (Latest)": _iloc0(ppnr_series),
+        "PPNR Growth YoY (Latest)": _yoy(ppnr_series),
     }
 
 def efficiency_ratio(ann_incstm):
-    nii   = safe_get(ann_incstm, 'NetInterestIncome')
-    total_rev = safe_get(ann_incstm, 'TotalRevenue')
+    nii       = _get_row(ann_incstm, 'NetInterestIncome')
+    total_rev = _get_row(ann_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
     nonint_income = total_rev - nii
-    sga   = safe_get(ann_incstm, 'SellingGeneralAndAdministration')
-    other = safe_get(ann_incstm, 'OtherNonInterestExpense')
+    sga   = ann_incstm.loc['SellingGeneralAndAdministration', :] if 'SellingGeneralAndAdministration' in ann_incstm.index else 0
+    other = ann_incstm.loc['OtherNonInterestExpense', :] if 'OtherNonInterestExpense' in ann_incstm.index else 0
     nonint_expense = sga + other
     eff_series = (nonint_expense / (nii + nonint_income)).sort_index(ascending=False)
-    eff_latest = eff_series.iloc[0]
-    eff_delta  = (eff_series.iloc[0] - eff_series.iloc[1]) * 10000.0
+    eff0 = _iloc0(eff_series)
+    eff1 = _iloc1(eff_series)
+    eff_delta = ((eff0 - eff1) * 10000.0) if not np.isnan(eff1) else np.nan
     return {
         "Efficiency Ratio (series)": eff_series,
-        "Efficiency Ratio (Latest)": eff_latest,
+        "Efficiency Ratio (Latest)": eff0,
         "Efficiency Ratio Δ YoY (bps) Latest": eff_delta,
     }
 
 def nii_growth_yoy(ann_incstm):
-    nii = safe_get(ann_incstm, 'NetInterestIncome').sort_index(ascending=False)
-    nii_growth = (nii.iloc[0] - nii.iloc[1]) / nii.iloc[1]
+    nii = _get_row(ann_incstm, 'NetInterestIncome').sort_index(ascending=False)
     return {
         "Net Interest Income (series)": nii,
-        "NII Growth YoY (Latest)": nii_growth,
+        "NII Growth YoY (Latest)": _yoy(nii),
     }
 
 def ppnr_growth_volatility_qtr(qtr_incstm):
-    nii   = safe_get(qtr_incstm, 'NetInterestIncome')
-    total_rev = safe_get(qtr_incstm, 'TotalRevenue')
+    nii       = _get_row(qtr_incstm, 'NetInterestIncome')
+    total_rev = _get_row(qtr_incstm, 'TotalRevenue', 'Revenue', 'OperatingRevenue')
     nonint_income = total_rev - nii
-    sga   = safe_get(qtr_incstm, 'SellingGeneralAndAdministration')
-    other = safe_get(qtr_incstm, 'OtherNonInterestExpense')
+    sga   = qtr_incstm.loc['SellingGeneralAndAdministration', :] if 'SellingGeneralAndAdministration' in qtr_incstm.index else 0
+    other = qtr_incstm.loc['OtherNonInterestExpense', :] if 'OtherNonInterestExpense' in qtr_incstm.index else 0
     nonint_expense = sga + other
     ppnr_series = (nii + nonint_income - nonint_expense).sort_index()
     ppnr_growth = ppnr_series / ppnr_series.shift(1) - 1.0
@@ -215,32 +228,32 @@ def ppnr_growth_volatility_qtr(qtr_incstm):
     }
 
 def roe_roa(ann_incstm, ann_bs):
-    net_inc = safe_get(ann_incstm, 'NetIncome')
-    equity  = safe_get(ann_bs, 'TotalEquityGrossMinorityInterest')
-    assets  = safe_get(ann_bs, 'TotalAssets')
+    net_inc = _get_row(ann_incstm, 'NetIncome')
+    equity  = _get_row(ann_bs, 'TotalEquityGrossMinorityInterest', 'StockholdersEquity')
+    assets  = _get_row(ann_bs, 'TotalAssets')
     roe_series = (net_inc / equity).sort_index(ascending=False)
     roa_series = (net_inc / assets).sort_index(ascending=False)
     return {
         "ROE (series)": roe_series,
-        "ROE (Latest)": roe_series.iloc[0],
+        "ROE (Latest)": _iloc0(roe_series),
         "ROA (series)": roa_series,
-        "ROA (Latest)": roa_series.iloc[0],
+        "ROA (Latest)": _iloc0(roa_series),
     }
 
 def equity_to_assets(ann_bs):
-    equity = safe_get(ann_bs, 'TotalEquityGrossMinorityInterest')
-    assets = safe_get(ann_bs, 'TotalAssets')
+    equity = _get_row(ann_bs, 'TotalEquityGrossMinorityInterest', 'StockholdersEquity')
+    assets = _get_row(ann_bs, 'TotalAssets')
     ea_series = (equity / assets).sort_index(ascending=False)
     return {
         "Equity / Assets (series)": ea_series,
-        "Equity / Assets (Latest)": ea_series.iloc[0],
+        "Equity / Assets (Latest)": _iloc0(ea_series),
     }
 
 def ppnr_to_assets(ann_incstm, ann_bs):
     pp_series = ppnr(ann_incstm)["PPNR (series)"]
-    assets = safe_get(ann_bs, 'TotalAssets')
+    assets    = _get_row(ann_bs, 'TotalAssets')
     pa_series = (pp_series / assets).sort_index(ascending=False)
     return {
         "PPNR / Assets (series)": pa_series,
-        "PPNR / Assets (Latest)": pa_series.iloc[0],
+        "PPNR / Assets (Latest)": _iloc0(pa_series),
     }

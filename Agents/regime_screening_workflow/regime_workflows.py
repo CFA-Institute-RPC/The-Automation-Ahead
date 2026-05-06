@@ -76,12 +76,31 @@ async def start_workflow(ctx: Context[State], ev: StartEvent) -> None | ProcessT
 async def pull_financial_data(ctx: Context[State], ev: ProcessTicker) -> PullFinancialData:
     ticker = ev.ticker
     print(f"Fetching financials for {ticker} via yfinance...")
-    stock = await asyncio.to_thread(yf.Ticker, ticker)
-    sector = await asyncio.to_thread(lambda: stock.info['sector'])
-    ann_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='yearly'))
-    ann_bs_df = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='yearly'))
-    qtr_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='quarterly'))
-    qtr_bs_df = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='quarterly'))
+
+    def _fetch(t):
+        stock = yf.Ticker(t)
+        try:
+            sector = stock.info.get('sector', 'Non-Financial Services')
+        except Exception:
+            sector = 'Non-Financial Services'
+        ann_inc = stock.get_financials(freq='yearly')
+        ann_bs  = stock.get_balance_sheet(freq='yearly')
+        qtr_inc = stock.get_financials(freq='quarterly')
+        qtr_bs  = stock.get_balance_sheet(freq='quarterly')
+        return sector, ann_inc, ann_bs, qtr_inc, qtr_bs
+
+    sector, ann_income_df, ann_bs_df, qtr_income_df, qtr_bs_df = await asyncio.to_thread(_fetch, ticker)
+
+    import time
+    for delay in [3, 7]:
+        if not ann_income_df.empty or not ann_bs_df.empty:
+            break
+        print(f"[{ticker}] Empty data — retrying in {delay}s...")
+        await asyncio.sleep(delay)
+        sector, ann_income_df, ann_bs_df, qtr_income_df, qtr_bs_df = await asyncio.to_thread(_fetch, ticker)
+
+    if ann_income_df.empty and ann_bs_df.empty:
+        print(f"[{ticker}] Warning: no financial data after retries. Metrics will be NaN.")
 
     async with ctx.store.edit_state() as st:
         st.FinancialData = Financials(
@@ -237,9 +256,9 @@ async def data_validation(ctx: Context[State], ev: MetricsEvent) -> DataCommenta
     if not metrics:
         return StopEvent(result="No financial metrics available for evaluation.")
     
-    llm = OpenAI(model="gpt-4.1-mini",temperature=0)
+    llm = OpenAI(model="gpt-4.1-mini", temperature=0, request_timeout=180.0)
     calls=[]
-    
+
     def get_annual_income_data():
         """Get annual income statement data"""
         result = to_df(state.FinancialData.Ann_IncomeStatement)
@@ -307,7 +326,7 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
     if not metrics:
         return StopEvent(result=f"No financial metrics available for evaluation (Ticker:{state.Ticker}).")
     data_commentary = state.DataCommentary
-    llm = OpenAI(model="gpt-4.1-mini",temperature=0)
+    llm = OpenAI(model="gpt-4.1-mini", temperature=0, request_timeout=180.0)
     sllm = llm.as_structured_llm(LLMEvaluation)
     prompt = (
         "You are a seasoned portfolio manager and you are evaluating potential investments in companies based on "
@@ -371,12 +390,32 @@ async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | Pr
 async def pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> PullFinancialData:
     t = ev.ticker
     print(f"Fetching financials for {t} via yfinance...")
-    stock = await asyncio.to_thread(yf.Ticker, t)
-    sector = await asyncio.to_thread(lambda: stock.info['sector'])
-    ann_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='yearly'))
-    ann_bs_df    = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='yearly'))
-    qtr_income_df= await asyncio.to_thread(lambda: stock.get_financials(freq='quarterly'))
-    qtr_bs_df    = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='quarterly'))
+
+    def _fetch(ticker, delay=0):
+        import time
+        if delay:
+            time.sleep(delay)
+        stock = yf.Ticker(ticker)
+        try:
+            sector = stock.info.get('sector', 'Non-Financial Services')
+        except Exception:
+            sector = 'Non-Financial Services'
+        ann_inc = stock.get_financials(freq='yearly')
+        ann_bs  = stock.get_balance_sheet(freq='yearly')
+        qtr_inc = stock.get_financials(freq='quarterly')
+        qtr_bs  = stock.get_balance_sheet(freq='quarterly')
+        return sector, ann_inc, ann_bs, qtr_inc, qtr_bs
+
+    sector, ann_income_df, ann_bs_df, qtr_income_df, qtr_bs_df = await asyncio.to_thread(_fetch, t)
+
+    for delay in [3, 7]:
+        if not ann_income_df.empty or not ann_bs_df.empty:
+            break
+        print(f"[{t}] Empty data — retrying in {delay}s...")
+        sector, ann_income_df, ann_bs_df, qtr_income_df, qtr_bs_df = await asyncio.to_thread(_fetch, t, delay)
+
+    if ann_income_df.empty and ann_bs_df.empty:
+        print(f"[{t}] Warning: no financial data after retries. Metrics will be NaN.")
 
     async with ctx.store.edit_state() as st:
         child = st.children[t]
@@ -387,7 +426,7 @@ async def pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> P
             Qtr_BalanceSheet=qtr_bs_df.to_dict(),
             Qtr_IncomeStatement=qtr_income_df.to_dict(),
         )
-        st.children[t] = child  
+        st.children[t] = child
     return PullFinancialData(ticker=t)
 
 @step(workflow=ParallelRegimeScreeningWorkflow,num_workers=10)
@@ -552,7 +591,7 @@ async def data_validation(ctx:Context[ParentState],ev: MetricsEvent) -> DataComm
     if not metrics:
         return StopEvent(result="No financial metrics available for evaluation.")
     
-    llm = OpenAI(model="gpt-4.1",temperature=0,)
+    llm = OpenAI(model="gpt-4.1", temperature=0, request_timeout=180.0)
     calls=[]
     
     def get_annual_income_data():
