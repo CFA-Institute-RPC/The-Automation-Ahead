@@ -51,7 +51,7 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 
 # --- RegimeScreeningWorkflow Steps ---------------------------------------------------------
 
-@step(workflow=RegimeScreeningWorkflow)
+@step(workflow=RegimeScreeningWorkflow, num_workers=1)
 async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
     regime_resp = await ctx.wait_for_event(
@@ -340,7 +340,7 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
     return StopEvent(result=evaluation)
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
-@step(workflow=ParallelRegimeScreeningWorkflow)
+@step(workflow=ParallelRegimeScreeningWorkflow, num_workers=1)
 async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | StopEvent | ProcessTicker:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
     regime_resp = await ctx.wait_for_event(
