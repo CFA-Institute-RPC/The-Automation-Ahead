@@ -355,27 +355,21 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
 @step(workflow=ParallelRegimeScreeningWorkflow)
-async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
-    regime_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="EconomicRegime",
-        waiter_event=InputRequiredEvent(
-            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
-        ),
-    )
+async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    try:
-        regime_choice = regime_opts[int(regime_resp.response.strip())]
-    except Exception:
-        print("Invalid regime. Try again.")
-        return ctx.send_event(StartEvent())
+    regime_raw = str(ev.get("regime") or "").strip()
+    tickers_raw = str(ev.get("tickers") or "").strip()
 
-    tickers_resp = await ctx.wait_for_event(
-        HumanResponseEvent,
-        waiter_id="Tickers",
-        waiter_event=InputRequiredEvent(prefix="Enter comma-separated tickers (e.g. aapl,nvda,jnj):"),
-    )
-    tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
+    try:
+        regime_choice = regime_opts[int(regime_raw)]
+    except Exception:
+        print(f"Invalid regime '{regime_raw}'. Pass regime=0..3 to w.run().")
+        return None
+
+    tickers = [t.strip().upper() for t in tickers_raw.split(",") if t.strip()]
+    if not tickers:
+        print("No tickers provided. Pass tickers='nvda,aapl' to w.run().")
+        return None
 
     async with ctx.store.edit_state() as st:
         st.EconomicRegime = regime_choice
