@@ -15,6 +15,8 @@ from llama_index.core.workflow import (
     Context,
     step,
     Workflow,
+    InputRequiredEvent,
+    HumanResponseEvent,
 )
 from llama_index.core.agent.workflow import ReActAgent
 from regime_state import (
@@ -52,13 +54,24 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 @step(workflow=RegimeScreeningWorkflow)
 async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
+    regime_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="EconomicRegime",
+        waiter_event=InputRequiredEvent(
+            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
+        ),
+    )
     try:
-        regime_choice = regime_opts[int(str(ev.get("regime", "")).strip())]
+        regime_choice = regime_opts[int(regime_resp.response.strip())]
     except Exception:
-        return StopEvent(result="Invalid regime. Pass regime=0/1/2/3 to w.run().")
-    ticker = str(ev.get("ticker", "")).strip().upper()
-    if not ticker:
-        return StopEvent(result="No ticker provided. Pass ticker='AAPL' to w.run().")
+        return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
+
+    ticker_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="Ticker",
+        waiter_event=InputRequiredEvent(prefix="Enter ticker: "),
+    )
+    ticker = ticker_resp.response.strip().upper()
     async with ctx.store.edit_state() as st:
         st.EconomicRegime = regime_choice
         st.Ticker = ticker
@@ -330,14 +343,24 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 @step(workflow=ParallelRegimeScreeningWorkflow)
 async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | StopEvent | ProcessTicker:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
+    regime_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="EconomicRegime",
+        waiter_event=InputRequiredEvent(
+            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
+        ),
+    )
     try:
-        regime_choice = regime_opts[int(str(ev.get("regime", "")).strip())]
+        regime_choice = regime_opts[int(regime_resp.response.strip())]
     except Exception:
-        return StopEvent(result="Invalid regime. Pass regime=0/1/2/3 to w.run().")
-    tickers_raw = str(ev.get("tickers", ""))
-    tickers = [t.strip().upper() for t in tickers_raw.split(",") if t.strip()]
-    if not tickers:
-        return StopEvent(result="No tickers provided. Pass tickers='AAPL,MSFT' to w.run().")
+        return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
+
+    tickers_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="Tickers",
+        waiter_event=InputRequiredEvent(prefix="Enter comma-separated tickers (e.g. AAPL,MSFT): "),
+    )
+    tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
     async with ctx.store.edit_state() as st:
         st.EconomicRegime = regime_choice
         st.Tickers = tickers
