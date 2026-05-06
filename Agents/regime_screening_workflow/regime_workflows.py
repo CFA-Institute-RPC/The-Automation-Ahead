@@ -52,10 +52,14 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 # --- RegimeScreeningWorkflow Steps ---------------------------------------------------------
 
 @step(workflow=RegimeScreeningWorkflow, num_workers=1)
-async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent:
+async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent | None:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
 
     state = await ctx.store.get_state()
+    # Guard against spurious re-entry after ticker already dispatched
+    if state.Ticker:
+        return None
+
     if state.EconomicRegime is None:
         regime_resp = await ctx.wait_for_event(
             HumanResponseEvent,
