@@ -84,7 +84,7 @@ async def pull_financial_data(ctx: Context[State], ev: ProcessTicker) -> PullFin
     ticker = ev.ticker
     print(f"Fetching financials for {ticker} via yfinance...")
     stock = await asyncio.to_thread(yf.Ticker, ticker)
-    sector = await asyncio.to_thread(lambda: stock.info['sector'])
+    sector = await asyncio.to_thread(lambda: stock.info.get('sector', 'Unknown'))
     ann_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='yearly'))
     ann_bs_df = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='yearly'))
     qtr_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='quarterly'))
@@ -379,7 +379,7 @@ async def pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> P
     t = ev.ticker
     print(f"Fetching financials for {t} via yfinance...")
     stock = await asyncio.to_thread(yf.Ticker, t)
-    sector = await asyncio.to_thread(lambda: stock.info['sector'])
+    sector = await asyncio.to_thread(lambda: stock.info.get('sector', 'Unknown'))
     ann_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='yearly'))
     ann_bs_df    = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='yearly'))
     qtr_income_df= await asyncio.to_thread(lambda: stock.get_financials(freq='quarterly'))
