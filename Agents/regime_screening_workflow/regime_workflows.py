@@ -349,6 +349,10 @@ async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | St
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
 
     state = await ctx.store.get_state()
+    # Guard: tickers already dispatched on a previous run — spurious re-entry, do nothing.
+    if state.Tickers:
+        return None
+
     if state.EconomicRegime is None:
         regime_resp = await ctx.wait_for_event(
             HumanResponseEvent,
