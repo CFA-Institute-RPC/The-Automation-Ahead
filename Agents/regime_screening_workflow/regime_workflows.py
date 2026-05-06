@@ -1,13 +1,6 @@
 import asyncio
 import json
-import curl_cffi.requests as _cr
 import yfinance as yf
-
-_orig_req = _cr.Session.request
-def _no_verify_req(self, *args, **kwargs):
-    kwargs.setdefault("verify", False)
-    return _orig_req(self, *args, **kwargs)
-_cr.Session.request = _no_verify_req
 from llama_index.llms.openai import OpenAI
 from llama_index.core.workflow import (
     StartEvent,
@@ -51,37 +44,31 @@ class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
 
 # --- RegimeScreeningWorkflow Steps ---------------------------------------------------------
 
-@step(workflow=RegimeScreeningWorkflow, num_workers=1)
-async def start_workflow(ctx: Context[State], ev: StartEvent) -> ProcessTicker | StopEvent | None:
+@step(workflow=RegimeScreeningWorkflow)
+async def start_workflow(ctx: Context[State], ev: StartEvent) -> None | ProcessTicker:
+    regime_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="EconomicRegime",
+        waiter_event=InputRequiredEvent(
+            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+        ),
+    )
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-
-    state = await ctx.store.get_state()
-    # Guard against spurious re-entry after ticker already dispatched
-    if state.Ticker:
-        return None
-
-    if state.EconomicRegime is None:
-        regime_resp = await ctx.wait_for_event(
-            HumanResponseEvent,
-            waiter_id="EconomicRegime",
-            waiter_event=InputRequiredEvent(
-                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
-            ),
-        )
-        try:
-            regime_choice = regime_opts[int(regime_resp.response.strip())]
-        except Exception:
-            return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
-        async with ctx.store.edit_state() as st:
-            st.EconomicRegime = regime_choice
+    try:
+        regime_choice = regime_opts[int(regime_resp.response.strip())]
+    except Exception:
+        print('An error occured. Try again...')
+        start_workflow(ctx,ev)
 
     ticker_resp = await ctx.wait_for_event(
         HumanResponseEvent,
         waiter_id="Ticker",
-        waiter_event=InputRequiredEvent(prefix="Enter ticker: "),
+        waiter_event=InputRequiredEvent(prefix="Input a ticker for the stock you want to screen:"),
     )
-    ticker = ticker_resp.response.strip().upper()
+    ticker = str(ticker_resp.response.strip())
+    
     async with ctx.store.edit_state() as st:
+        st.EconomicRegime = regime_choice
         st.Ticker = ticker
     return ProcessTicker(ticker=ticker)
 
@@ -90,7 +77,7 @@ async def pull_financial_data(ctx: Context[State], ev: ProcessTicker) -> PullFin
     ticker = ev.ticker
     print(f"Fetching financials for {ticker} via yfinance...")
     stock = await asyncio.to_thread(yf.Ticker, ticker)
-    sector = await asyncio.to_thread(lambda: stock.info.get('sector', 'Unknown'))
+    sector = await asyncio.to_thread(lambda: stock.info['sector'])
     ann_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='yearly'))
     ann_bs_df = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='yearly'))
     qtr_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='quarterly'))
@@ -348,40 +335,35 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
     return StopEvent(result=evaluation)
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
-@step(workflow=ParallelRegimeScreeningWorkflow, num_workers=1)
-async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | StopEvent | ProcessTicker:
+@step(workflow=ParallelRegimeScreeningWorkflow)
+async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
+    regime_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="EconomicRegime",
+        waiter_event=InputRequiredEvent(
+            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+        ),
+    )
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-
-    state = await ctx.store.get_state()
-    # Guard: tickers already dispatched on a previous run — spurious re-entry, do nothing.
-    if state.Tickers:
-        return None
-
-    if state.EconomicRegime is None:
-        regime_resp = await ctx.wait_for_event(
-            HumanResponseEvent,
-            waiter_id="EconomicRegime",
-            waiter_event=InputRequiredEvent(
-                prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession: "
-            ),
-        )
-        try:
-            regime_choice = regime_opts[int(regime_resp.response.strip())]
-        except Exception:
-            return StopEvent(result="Invalid regime — re-run the cell and enter 0, 1, 2, or 3.")
-        async with ctx.store.edit_state() as st:
-            st.EconomicRegime = regime_choice
+    try:
+        regime_choice = regime_opts[int(regime_resp.response.strip())]
+    except Exception:
+        print("Invalid regime. Try again.")
+        return ctx.send_event(StartEvent())
 
     tickers_resp = await ctx.wait_for_event(
         HumanResponseEvent,
         waiter_id="Tickers",
-        waiter_event=InputRequiredEvent(prefix="Enter comma-separated tickers (e.g. AAPL,MSFT): "),
+        waiter_event=InputRequiredEvent(prefix="Enter comma-separated tickers (e.g. aapl,nvda,jnj):"),
     )
     tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
+
     async with ctx.store.edit_state() as st:
+        st.EconomicRegime = regime_choice
         st.Tickers = tickers
         st.children = {t: TickerState(Ticker=t) for t in tickers}
         st.completed = set()
+
     for t in tickers:
         ctx.send_event(ProcessTicker(ticker=t))
 
@@ -390,7 +372,7 @@ async def pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> P
     t = ev.ticker
     print(f"Fetching financials for {t} via yfinance...")
     stock = await asyncio.to_thread(yf.Ticker, t)
-    sector = await asyncio.to_thread(lambda: stock.info.get('sector', 'Unknown'))
+    sector = await asyncio.to_thread(lambda: stock.info['sector'])
     ann_income_df = await asyncio.to_thread(lambda: stock.get_financials(freq='yearly'))
     ann_bs_df    = await asyncio.to_thread(lambda: stock.get_balance_sheet(freq='yearly'))
     qtr_income_df= await asyncio.to_thread(lambda: stock.get_financials(freq='quarterly'))
