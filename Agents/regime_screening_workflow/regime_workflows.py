@@ -40,7 +40,7 @@ from evaluation_tables import (
 # --- Workflow Declarations ------------------------------------------
 
 class RegimeScreeningWorkflow(Workflow): pass
-class ParallelRegimeScreeningWorkflow(RegimeScreeningWorkflow): pass
+class ParallelRegimeScreeningWorkflow(Workflow): pass
 
 # --- RegimeScreeningWorkflow Steps ---------------------------------------------------------
 
