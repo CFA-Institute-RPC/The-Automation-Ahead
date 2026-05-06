@@ -355,7 +355,7 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
 @step(workflow=ParallelRegimeScreeningWorkflow)
-async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
+async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
     regime_resp = await ctx.wait_for_event(
         HumanResponseEvent,
         waiter_id="EconomicRegime",
@@ -387,7 +387,7 @@ async def start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | Pr
         ctx.send_event(ProcessTicker(ticker=t))
 
 @step(workflow=ParallelRegimeScreeningWorkflow, num_workers=10)
-async def pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> PullFinancialData:
+async def parallel_pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> PullFinancialData:
     t = ev.ticker
     print(f"Fetching financials for {t} via yfinance...")
 
@@ -430,7 +430,7 @@ async def pull_financial_data(ctx: Context[ParentState], ev: ProcessTicker) -> P
     return PullFinancialData(ticker=t)
 
 @step(workflow=ParallelRegimeScreeningWorkflow,num_workers=10)
-async def regime_router(ctx: Context[ParentState], ev: PullFinancialData) -> ExpansionRoute | InflationRoute | StagflationRoute | RecessionRoute:
+async def parallel_regime_router(ctx: Context[ParentState], ev: PullFinancialData) -> ExpansionRoute | InflationRoute | StagflationRoute | RecessionRoute:
     regime = (await ctx.store.get_state()).EconomicRegime
     t = ev.ticker
     if regime == "Expansionary":
@@ -573,7 +573,7 @@ async def recession_metrics(ctx: Context[ParentState], ev: RecessionRoute) -> Me
     return MetricsEvent(ticker=t)
 
 @step(workflow=ParallelRegimeScreeningWorkflow,num_workers=10)
-async def data_validation(ctx:Context[ParentState],ev: MetricsEvent) -> DataCommentary:
+async def parallel_data_validation(ctx:Context[ParentState],ev: MetricsEvent) -> DataCommentary:
     t = ev.ticker
     state = await ctx.store.get_state()
     child = state.children[t]
@@ -648,7 +648,7 @@ async def data_validation(ctx:Context[ParentState],ev: MetricsEvent) -> DataComm
     return DataCommentary(ticker=t)
 
 @step(workflow=ParallelRegimeScreeningWorkflow,num_workers=10)
-async def evaluate_financials(ctx: Context[ParentState], ev: DataCommentary) -> ResultEvent:
+async def parallel_evaluate_financials(ctx: Context[ParentState], ev: DataCommentary) -> ResultEvent:
     t = ev.ticker
     state = await ctx.store.get_state()
     regime = state.EconomicRegime or ""
