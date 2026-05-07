@@ -82,7 +82,9 @@ async def pull_financial_data(ctx: Context[State], ev: ProcessTicker) -> PullFin
     print(f"Fetching financials for {ticker} via yfinance...")
 
     def _fetch(t):
-        stock = yf.Ticker(t)
+        from curl_cffi import requests as cfrequests
+        session = cfrequests.Session(verify=False, impersonate='chrome110')
+        stock = yf.Ticker(t, session=session)
         try:
             sector = stock.info.get('sector', 'Non-Financial Services')
         except Exception:
@@ -94,8 +96,6 @@ async def pull_financial_data(ctx: Context[State], ev: ProcessTicker) -> PullFin
         return sector, ann_inc, ann_bs, qtr_inc, qtr_bs
 
     sector, ann_income_df, ann_bs_df, qtr_income_df, qtr_bs_df = await asyncio.to_thread(_fetch, ticker)
-
-    import time
     for delay in [3, 7]:
         if not ann_income_df.empty or not ann_bs_df.empty:
             break
@@ -402,9 +402,11 @@ async def parallel_pull_financial_data(ctx: Context[ParentState], ev: ProcessTic
 
     def _fetch(ticker, delay=0):
         import time
+        from curl_cffi import requests as cfrequests
         if delay:
             time.sleep(delay)
-        stock = yf.Ticker(ticker)
+        session = cfrequests.Session(verify=False, impersonate='chrome110')
+        stock = yf.Ticker(ticker, session=session)
         try:
             sector = stock.info.get('sector', 'Non-Financial Services')
         except Exception:
