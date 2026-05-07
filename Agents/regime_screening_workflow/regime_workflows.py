@@ -355,7 +355,7 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
 @step(workflow=ParallelRegimeScreeningWorkflow)
-async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None:
+async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
     regime_raw = str(ev.get("regime") or "").strip()
     tickers_raw = str(ev.get("tickers") or "").strip()
