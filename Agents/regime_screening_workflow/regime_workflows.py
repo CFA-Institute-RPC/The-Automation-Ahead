@@ -6,11 +6,15 @@ from llama_index.core.workflow import (
     StartEvent,
     StopEvent,
     Context,
+    Event,
     step,
     Workflow,
     InputRequiredEvent,
     HumanResponseEvent,
 )
+
+class RegimeSelectedEvent(Event):
+    regime: str
 from llama_index.core.agent.workflow import ReActAgent
 from regime_state import (
     State,
@@ -355,28 +359,39 @@ async def evaluate_financials(ctx: Context[State], ev: DataCommentary) -> StopEv
 
 # --- ParallelRegimeScreeningWorkflow Steps ---------------------------------------------------------
 @step(workflow=ParallelRegimeScreeningWorkflow)
-async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> None | ProcessTicker:
+async def parallel_start_workflow(ctx: Context[ParentState], ev: StartEvent) -> RegimeSelectedEvent | None:
+    regime_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="EconomicRegime",
+        waiter_event=InputRequiredEvent(
+            prefix="Select regime by number: 0=Expansionary, 1=Inflationary, 2=Stagflationary, 3=Recession"
+        ),
+    )
     regime_opts = ['Expansionary', 'Inflationary', 'Stagflationary', 'Recession']
-    regime_raw = str(ev.get("regime") or "").strip()
-    tickers_raw = str(ev.get("tickers") or "").strip()
-
     try:
-        regime_choice = regime_opts[int(regime_raw)]
+        regime_choice = regime_opts[int(regime_resp.response.strip())]
     except Exception:
-        print(f"Invalid regime '{regime_raw}'. Pass regime=0..3 to w.run().")
+        print("Invalid regime. Try again.")
         return None
-
-    tickers = [t.strip().upper() for t in tickers_raw.split(",") if t.strip()]
-    if not tickers:
-        print("No tickers provided. Pass tickers='nvda,aapl' to w.run().")
-        return None
-
     async with ctx.store.edit_state() as st:
         st.EconomicRegime = regime_choice
+    return RegimeSelectedEvent(regime=regime_choice)
+
+@step(workflow=ParallelRegimeScreeningWorkflow)
+async def parallel_collect_tickers(ctx: Context[ParentState], ev: RegimeSelectedEvent) -> ProcessTicker | None:
+    tickers_resp = await ctx.wait_for_event(
+        HumanResponseEvent,
+        waiter_id="Tickers",
+        waiter_event=InputRequiredEvent(prefix="Enter comma-separated tickers (e.g. aapl,nvda,jnj):"),
+    )
+    tickers = [t.strip().upper() for t in tickers_resp.response.split(",") if t.strip()]
+    if not tickers:
+        print("No tickers provided.")
+        return None
+    async with ctx.store.edit_state() as st:
         st.Tickers = tickers
         st.children = {t: TickerState(Ticker=t) for t in tickers}
         st.completed = set()
-
     for t in tickers:
         ctx.send_event(ProcessTicker(ticker=t))
 
