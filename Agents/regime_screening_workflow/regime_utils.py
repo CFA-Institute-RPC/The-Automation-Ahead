@@ -37,20 +37,23 @@ def get_financials(state) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.
 
 def regime_to_criteria(state: State, regime: str, is_financials:bool) -> str:
     if is_financials:
-        mapping = mapping = {
-        "Expansion": EXPANSIONARY_CRITERIA_FINANCIALS,
-        "Inflation": INFLATIONARY_CRITERIA_FINANCIALS,
-        "Stagflation": STAGFLATIONARY_CRITERIA_FINANCIALS,
+        mapping = {
+        "Expansionary": EXPANSIONARY_CRITERIA_FINANCIALS,
+        "Inflationary": INFLATIONARY_CRITERIA_FINANCIALS,
+        "Stagflationary": STAGFLATIONARY_CRITERIA_FINANCIALS,
         "Recession": RECESSION_CRITERIA_FINANCIALS,
         }
     else:
         mapping = {
-            "Expansion": state.ScreeningCriteria.Expansionary,
-            "Inflation": state.ScreeningCriteria.Inflationary,
-            "Stagflation": state.ScreeningCriteria.Stagflationary,
+            "Expansionary": state.ScreeningCriteria.Expansionary,
+            "Inflationary": state.ScreeningCriteria.Inflationary,
+            "Stagflationary": state.ScreeningCriteria.Stagflationary,
             "Recession": state.ScreeningCriteria.Recession,
         }
-    return mapping.get(regime, "")
+    # Fail loudly: an empty criteria table lets the LLM score without the rubric
+    if regime not in mapping:
+        raise ValueError(f"Unknown regime {regime!r}; expected one of {list(mapping)}")
+    return mapping[regime]
 
 async def save_metrics(ctx, metrics_dict):
     """Put metrics into state['MetricData'].MetricData (append/update)."""
