@@ -255,7 +255,7 @@ async def data_validation(ctx: Context[State], ev: MetricsEvent) -> DataCommenta
     state = await ctx.store.get_state()
     metrics = state.MetricData.MetricData or {}
     sector = state.Sector
-    outlier_table = OUTLIER_TABLE if sector=='Financial Services' else OUTLIER_TABLE_FINANCIALS
+    outlier_table = OUTLIER_TABLE_FINANCIALS if sector=='Financial Services' else OUTLIER_TABLE
     
     if not metrics:
         return StopEvent(result="No financial metrics available for evaluation.")
@@ -589,7 +589,7 @@ async def parallel_data_validation(ctx:Context[ParentState],ev: MetricsEvent) ->
     state = await ctx.store.get_state()
     child = state.children[t]
     sector = child.Sector
-    outlier_table = OUTLIER_TABLE if sector=='Financial Services' else OUTLIER_TABLE_FINANCIALS
+    outlier_table = OUTLIER_TABLE_FINANCIALS if sector=='Financial Services' else OUTLIER_TABLE
     metrics = child.MetricData.MetricData
     if not metrics:
         return DataCommentary(ticker=t)
